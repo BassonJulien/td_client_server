@@ -1,40 +1,61 @@
-var net = require('net');
-
-var HOST = '127.0.0.1';
-var PORT = 6969;
 
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
 // The sock object the callback function receives UNIQUE for each connection
-net.createServer(function(sock) {
 
-  // We have a connection - a socket object is assigned to the connection automatically
-  console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
-
-  // Add a 'data' event handler to this instance of socket
-  sock.on('data', function(data) {
-
-    console.log('DATA ' + sock.remoteAddress + ': ' + data);
-    // Write the data back to the socket, the client will receive it as data from the server
-    sock.write('You said "' + data + '"');
-
-  });
+const net = require('net'),
+    JsonSocket = require('json-socket'),
+    port = 9838;
 
 
-  sock.on('connection', function(data) {
-
-    console.log('DATA ' + sock.remoteAddress + ': ' + data);
-    // Write the data back to the socket, the client will receive it as data from the server
-    sock.write('Your pseudo is "' + data + '"');
-
-  });
-  // Add a 'close' event handler to this instance of socket
+const server = net.createServer((socket) => {
+    socket.end('goodbye\n');
+}).on('error', (err) => {
+    // handle errors here
+    throw err;
+});
 
 
-  // sock.on('close', function(data) {
-  //   console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
-  // });
 
-}).listen(PORT, HOST);
+server.listen(port);
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.log('Address in use, retrying...');
+        setTimeout(() => {
+            server.close();
+            server.listen(PORT, HOST);
+        }, 1000);
+    }
+});
 
-console.log('Server listening on ' + HOST +':'+ PORT);
+server.on('connection', function(socket) { //This is a standard net.Socket
+    socket = new JsonSocket(socket); //Now we've decorated the net.Socket to be a JsonSocket
+
+    socket.on('message', function(message,client) {
+
+        if(socket===client){
+            let result = moi +" : "+ message.text;
+            socket.sendEndMessage({result: result});
+        }
+        else{
+            let result = message.pseudo + message.text;
+            socket.sendEndMessage({result: result});
+        }
+
+    });
+    socket.on('identification', function(pseudo,client) {
+        if(socket===client){
+            socket.sendEndMessage({result: " bienvenu "+pseudo});
+        }
+        else{
+            socket.sendEndMessage({result: pseudo+" vient de se connecter"});
+        }
+
+    });
+    socket.on('sendDecoMsg', function(pseudo) {
+        socket.sendEndMessage({result: pseudo+" vient de se déconnecter"});
+    });
+    socket.on('deco', function(pseudo) {
+       socket.close();
+    });
+});
