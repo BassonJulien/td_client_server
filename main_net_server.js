@@ -20,6 +20,14 @@ net.createServer(function(sock) {
 
   });
 
+
+  sock.on('connection', function(data) {
+
+    console.log('DATA ' + sock.remoteAddress + ': ' + data);
+    // Write the data back to the socket, the client will receive it as data from the server
+    sock.write('Your pseudo is "' + data + '"');
+
+  });
   // Add a 'close' event handler to this instance of socket
 
 
