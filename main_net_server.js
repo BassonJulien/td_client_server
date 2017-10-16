@@ -8,7 +8,7 @@ const net = require('net'),
 
 
 const startPos = [0, 9];
-
+const name = ['juju','lolo'];
 const server = net.createServer();
 
 let client = [];
@@ -17,18 +17,25 @@ server.listen(PORT, HOST);
 server.on('end', () => {
     console.log('client disconnected');
 });
+let clientName = [];
+
 
 server.on('connection', function(socket) { //This is a standard net.Socket
-    socket = new JsonSocket(socket); //Now we've decorated the net.Socket to be a JsonSocket
 
-    client.push({socket: socket, position: startPos.pop()});
+    socket = new JsonSocket(socket); //Now we've decorated the net.Socket to be a JsonSocket
+    socket.nickname = name.pop();
+
+    client.push({socket: socket.nickname, position: startPos.pop()});
+
+
 //console.log('les clients : '+JSON.stringify(client));
     socket.on('message', function(pos) {
-        console.log('ca rentre ds la fct');
         client.map(function(x) {
-            if(x === socket){
+            if(x.socket === socket.nickname){
                 if(pos.name === "right") {
                     x.position += 1;
+                    console.log('ca rentre ds la fct'+x.position);
+
 
                 }
                 if(pos.name === "left") {
@@ -36,7 +43,8 @@ server.on('connection', function(socket) { //This is a standard net.Socket
                 }
             }
         });
-        socket.sendEndMessage(JSON.stringify(client));
+        console.log('le tab est '+JSON.stringify(client));
+        socket.sendMessage(JSON.stringify(client));
 
     });
 

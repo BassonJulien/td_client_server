@@ -22,14 +22,15 @@ socket.on('connect', function() { //Don't send until we're connected
 
         socket.sendMessage(key);
 
-        socket.on('message', function(data) {
 
-            console.log(data);
-
-        });
         if (key && key.ctrl && key.name == 'c') {
             process.stdin.pause();
         }
+    });
+    socket.on('message', function(data) {
+
+        console.log(data);
+
     });
 });
 
