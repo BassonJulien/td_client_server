@@ -31,10 +31,6 @@ socket.on('connect', function() { //Don't send until we're connected
             process.stdin.pause();
         }
     });
-
-
-
-
 });
 
 process.stdin.setRawMode(true);

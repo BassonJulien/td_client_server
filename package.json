@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "blessed": "^0.1.81",
     "body-parser": "^1.18.2",
     "circular-json": "^0.3.3",
     "ent": "^2.2.0",
