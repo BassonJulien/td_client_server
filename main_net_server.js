@@ -1,58 +1,44 @@
 
-
 const net = require('net'),
     JsonSocket = require('json-socket'),
-    port = 9838;
+    HOST = '127.0.0.1',
+    PORT = 9838,
+    JSON = require('circular-json');
 
 
-const server = net.createServer((socket) => {
-    socket.end('goodbye\n');
-}).on('error', (err) => {
-    // handle errors here
-    throw err;
-});
+const startPos = [0, 9];
 
+const server = net.createServer();
 
+let client = [];
 
-server.listen(port);
-server.on('error', (e) => {
-    if (e.code === 'EADDRINUSE') {
-        console.log('Address in use, retrying...');
-        setTimeout(() => {
-            server.close();
-            server.listen(PORT, HOST);
-        }, 1000);
-    }
+server.listen(PORT, HOST);
+server.on('end', () => {
+    console.log('client disconnected');
 });
 
 server.on('connection', function(socket) { //This is a standard net.Socket
     socket = new JsonSocket(socket); //Now we've decorated the net.Socket to be a JsonSocket
 
-    socket.on('message', function(message,client) {
+    client.push({socket: socket, position: startPos.pop()});
+//console.log('les clients : '+JSON.stringify(client));
+    socket.on('message', function(pos) {
+        console.log('ca rentre ds la fct');
+        client.map(function(x) {
+            if(x === socket){
+                if(pos.name === "right") {
+                    x.position += 1;
 
-        if(socket===client){
-            let result = moi +" : "+ message.text;
-            socket.sendEndMessage({result: result});
-        }
-        else{
-            let result = message.pseudo + message.text;
-            socket.sendEndMessage({result: result});
-        }
-
-    });
-    socket.on('identification', function(pseudo,client) {
-        if(socket===client){
-            socket.sendEndMessage({result: " bienvenu "+pseudo});
-        }
-        else{
-            socket.sendEndMessage({result: pseudo+" vient de se connecter"});
-        }
+                }
+                if(pos.name === "left") {
+                    x.position -= 1;
+                }
+            }
+        });
+        socket.sendEndMessage(JSON.stringify(client));
 
     });
-    socket.on('sendDecoMsg', function(pseudo) {
-        socket.sendEndMessage({result: pseudo+" vient de se déconnecter"});
-    });
-    socket.on('deco', function(pseudo) {
-       socket.close();
-    });
+
+
+
 });

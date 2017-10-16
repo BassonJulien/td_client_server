@@ -4,11 +4,38 @@ var net = require('net'),
 
 var port = 9838; //The same port that the server is listening on
 var host = '127.0.0.1';
+var keypress = require('keypress');
+
+// make `process.stdin` begin emitting "keypress" events
+keypress(process.stdin);
+
+
+
 var socket = new JsonSocket(new net.Socket()); //Decorate a standard net.Socket with JsonSocket
 socket.connect(port, host);
 socket.on('connect', function() { //Don't send until we're connected
-    socket.sendMessage({a: 5, b: 7});
-    socket.on('message', function(message) {
-        console.log('The result is: '+message.result);
+    // listen for the "keypress" event
+
+
+    process.stdin.on('keypress', function (ch, key) {
+        console.log('got "keypress"', key.name);
+
+        socket.sendMessage(key);
+
+        socket.on('message', function(data) {
+
+            console.log(data);
+
+        });
+        if (key && key.ctrl && key.name == 'c') {
+            process.stdin.pause();
+        }
     });
+
+
+
+
 });
+
+process.stdin.setRawMode(true);
+process.stdin.resume();
